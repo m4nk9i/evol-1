@@ -1,13 +1,15 @@
 var ctx;
 
-const NUM_CELLS=100;
+const NUM_CELLS=800;
+const NUM_STEPS=200;
 const pi_2=Math.PI*2;
 var STAGE_SIZE=128;
 var MAXX;
 var MAXY;
 var animate=0;
 var cells=[];
-
+var cmap=[];
+var cmapsize;
 
 /**
  * inits an array of cells
@@ -16,14 +18,28 @@ function initCells()
 {
     for (let i=0;i<NUM_CELLS;i++)
     {
-
-        let tx=Math.random()*STAGE_SIZE;
-        let ty=Math.random()*STAGE_SIZE;
+        let tx=0;
+        let ty=0;
+        do{
+            tx=Math.floor(Math.random()*STAGE_SIZE);
+            ty=Math.floor(Math.random()*STAGE_SIZE);
+        }
+        while (cmap[(STAGE_SIZE*(tx)+(ty))]!=null)
+        //console.log(typeof(tx));
         let tcell=new Cell(tx,ty);
-        //console.log(tcell);
+        cmap[(STAGE_SIZE*(tx)+(ty))]=tcell;
+       /* console.log(tx);
+        console.log(ty);
+        console.log((STAGE_SIZE*(tx)+(ty)));
+        */
+       //console.log(tcell);
+        tcell.st_stagesize=STAGE_SIZE;
+        tcell.st_map=cmap;
 
         cells.push(tcell);
     }
+    console.log("cells");
+    console.log(cells.length)
 }
 
 /**
@@ -31,20 +47,25 @@ function initCells()
  */
 function updateCells(){
 
-    for (let i=0;i<NUM_CELLS;i++)
+ //   cmap=new Array(cmapsize);
+
+    for (let i=0;i<cells.length;i++)
     {
         
         cells[i].update();
     }
+  //  cmap.length=256*256;
+
+
 }
 
 /**
- * draws everyone cell
+ * draws every cell
  */
 
 function drawCells(){
     ctx.clearRect(0, 0, MAXX, MAXY)
-    for (let i=0;i<NUM_CELLS;i++)
+    for (let i=0;i<cells.length;i++)
     {        
         cells[i].draw(ctx,4);
     }
@@ -61,6 +82,7 @@ function loop()
     {
         drawCells();
         updateCells();
+      //  animate=0;
     }
 
     window.requestAnimationFrame(loop);
@@ -93,8 +115,13 @@ function Init()
     var canvas = document.getElementById("myCanvas");
     ctx = canvas.getContext("2d");
     MAXX=canvas.width; 
-    MAXY=canvas.height; 
-
+    MAXY=canvas.height;
+    cmapsize=STAGE_SIZE*STAGE_SIZE;
+    console.log(cmapsize);
+    cmap=new Array(cmapsize);  
+    console.log(cmap);
     initCells();
+    console.log(cmap);
+
     window.requestAnimationFrame(loop);
 }
