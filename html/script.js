@@ -1,8 +1,8 @@
 var ctx;
 
-const NUM_CELLS=800;
+const NUM_CELLS=1600;
 const NUM_STEPS=200;
-const pi_2=Math.PI*2;
+
 var STAGE_SIZE=128;
 var MAXX;
 var MAXY;
@@ -40,6 +40,7 @@ function initCells()
     }
     console.log("cells");
     console.log(cells.length)
+
 }
 
 /**
@@ -67,7 +68,7 @@ function drawCells(){
     ctx.clearRect(0, 0, MAXX, MAXY)
     for (let i=0;i<cells.length;i++)
     {        
-        cells[i].draw(ctx,4);
+        cells[i].draw(ctx,2);
     }
     
 }
@@ -78,11 +79,11 @@ function drawCells(){
 
 function loop()
 {
-    if (animate)
+    if (animate>0)
     {
         drawCells();
         updateCells();
-      //  animate=0;
+        if (animate==2) animate=0;
     }
 
     window.requestAnimationFrame(loop);
@@ -101,9 +102,19 @@ function butt1click()
  * disables animation
  */
 
-function butt2click()
+ function butt2click()
+ {
+         animate=0;
+ }
+
+ 
+/**
+ * one step animation
+ */
+
+function butt3click()
 {
-        animate=0;
+        animate=2;
 }
 
 /**

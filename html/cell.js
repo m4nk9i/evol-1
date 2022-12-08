@@ -1,9 +1,9 @@
-/**
- * Cell class represents a singular cell
- */
 
-const n_sensors={
-    d_off:0,
+const pi_2=Math.PI*2;
+
+
+const na_sensors={
+    s_off:0,
 s_on:1,
 s_up:2,
 s_left:3,
@@ -15,7 +15,7 @@ s_posx:8,
 s_posy:9
 }
 
-const n_actuators={
+const na_actuators={
     
     a_up:0,
     a_left:1,
@@ -24,6 +24,12 @@ const n_actuators={
     
 }
 
+const dir_color=["blue","red","green","orange"]
+
+/**
+ * Cell class represents a singular cell
+ */
+
 class Cell
 {
     static st_map;
@@ -31,8 +37,8 @@ class Cell
 
     posx=0;
     posy=0;
-    sensors=[];
-    actuators=[];
+    
+    neurons;
 
     dir=0;
 
@@ -46,13 +52,14 @@ class Cell
     {
         this.posx=Math.floor(px);
         this.posy=Math.floor(py);
-        this.sensors[n_sensors.s_on]=1;
-        this.sensors[n_sensors.s_off]=0;
-
+        
         let t=Math.floor(Math.random()*4.0);
         this.dir=t;
-        
-
+        this.neurons=new Neural(10,6,4);
+        this.neurons.a_sensors[na_sensors.s_on]=1;
+        this.neurons.a_sensors[na_sensors.s_off]=0;
+        this.neurons.a_conn_l1[1]=1;        //TODO:wywalic
+        this.neurons.a_conn_ac[t*4]=1;      //TODO:wywalic
     //    console.log(typeof(this.posx));
 
     }
@@ -66,12 +73,14 @@ class Cell
        // console.log(typeof(this.posx));
         var dx=0;
         var dy=0;
-        this.actuators=[0,0,0,0];
+      
 
-        this.actuators[this.dir]=this.sensors[n_sensors.s_on];
+        //this.actuators[this.dir]=this.sensors[n_sensors.s_on];
+        
 
+        this.neurons.update();
        // console.log(this.actuators);
-        if ((this.actuators[n_actuators.a_right]-this.actuators[n_actuators.a_left])>0.5)
+        if ((this.neurons.a_actuators[na_actuators.a_right]-this.neurons.a_actuators[na_actuators.a_left])>0.5)
         {
          //   console.log("6");
             if(this.posx<this.st_stagesize)
@@ -81,7 +90,7 @@ class Cell
             }
         }
 
-        if ((this.actuators[n_actuators.a_right]-this.actuators[n_actuators.a_left])<-0.5)
+        if ((this.neurons.a_actuators[na_actuators.a_right]-this.neurons.a_actuators[na_actuators.a_left])<-0.5)
         {
          //   console.log("6");
             if(this.posx>0)
@@ -91,7 +100,7 @@ class Cell
             }
         }        
 
-        if ((this.actuators[n_actuators.a_down]-this.actuators[n_actuators.a_up])>0.5)
+        if ((this.neurons.a_actuators[na_actuators.a_down]-this.neurons.a_actuators[na_actuators.a_up])>0.5)
         {
          //   console.log("6");
             if(this.posy<this.st_stagesize)
@@ -101,7 +110,7 @@ class Cell
             }
         }
 
-        if ((this.actuators[n_actuators.a_down]-this.actuators[n_actuators.a_up])<-0.5)
+        if ((this.neurons.a_actuators[na_actuators.a_down]-this.neurons.a_actuators[na_actuators.a_up])<-0.5)
         {
          //   console.log("6");
             if(this.posy>0)
@@ -136,16 +145,10 @@ class Cell
     draw(pctx,pscale)
     {
         pctx.beginPath();
-        switch(this.dir)
-        {
-            case (0):pctx.strokeStyle = 'blue';break;
-            case (1):pctx.strokeStyle = 'red';break;
-            case (2):pctx.strokeStyle = 'green';break;
-            case (3):pctx.strokeStyle = 'orange';break;
-            
-        }
+
+        pctx.strokeStyle=dir_color[this.dir];
         
-        pctx.ellipse(this.posx*pscale,this.posy*pscale,pscale*0.5,pscale*0.5,0,0,Math.PI*2);
+        pctx.ellipse(pscale+this.posx*pscale*2,pscale+this.posy*pscale*2,pscale,pscale,0,0, pi_2);
         pctx.stroke();
     }
 
