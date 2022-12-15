@@ -59,6 +59,7 @@ class Neural
 
     update()
     {
+        //this.a_sensors=[0,1,0,0,0,0,0,0,0,0]
 
         for (let i=0;i<this.n_layer1;i++)
         {
@@ -94,11 +95,44 @@ class Neural
 
     }
 
+    radomize()
+    {
+        for (let i=0;i<this.n_layer1;i++)
+        {
+            for(let j=0;j<this.n_actuators;j++)
+            {
+                this.a_conn_ac[j*this.n_actuators+i]=Math.random();
+            }
+            for(let j=0;j<this.n_sensors;j++)
+            {
+                this.a_conn_l1[i*this.n_layer1+j]=Math.random();
+            }
+        }
+    }
+
     copy()
     {   
-        t_net=new Neural(this.n_sensors,this.n_layer1,this.n_actuators);
-        for (let i=0;i<this.a_conn_ac;i++)t_net.a_conn_ac[i]=this.a_conn_ac[i];
-        for (let i=0;i<this.a_conn_l1;i++)t_net.a_conn_l1[i]=this.a_conn_l1[i];
+        var t_net=new Neural(this.n_sensors,this.n_layer1,this.n_actuators);
+        for (let i=0;i<this.a_conn_ac.length;i++)t_net.a_conn_ac[i]=this.a_conn_ac[i];
+        for (let i=0;i<this.a_conn_l1.length;i++)t_net.a_conn_l1[i]=this.a_conn_l1[i];
         return t_net;
+    }
+
+    mutate()
+    {
+        for(let i=0;i<this.a_conn_ac.length;i++)
+        {
+            this.a_conn_ac[i]+=(Math.random()*0.06-0.03);
+            if (this.a_conn_ac[i]<0.0) this.a_conn_ac=0;
+            if (this.a_conn_ac[i]>1.0) this.a_conn_ac=0;
+        }
+        for(let i=0;i<this.a_conn_l1.length;i++)
+        {
+            this.a_conn_l1[i]+=(Math.random()*0.06-0.03);
+            if (this.a_conn_l1[i]<0.0) this.a_conn_l1=0;
+            if (this.a_conn_l1[i]>1.0) this.a_conn_l1=0;
+        }
+        //this.a_conn_l1[1]=1;        //TODO:wywalic
+        //this.a_conn_ac[t*4]=1; 
     }
 }
