@@ -1,7 +1,7 @@
 
 const pi_2=Math.PI*2;
 
-
+/*
 const na_sensors={
     s_off:0,
 s_on:1,
@@ -25,15 +25,183 @@ const na_actuators={
 }
 
 const dir_color=["blue","red","green","orange"]
+*/
+
+class vec2d
+{
+    x=0;
+    y=0;
+    constructor(px,py)
+    {
+        this.x=px;
+        this.y=py;
+    }
+
+    mult (pf)
+    {
+        this.x*=pf;
+        this.y*=pf;
+    }
+
+    add (pv)
+    {
+        this.x+=pv.x;
+        this.y+=pv.y;
+    }
+
+    toStr()
+    {
+        return ("["+this.x+","+this.y+"]");
+    }
+
+}
+class leg
+{
+    t=0;
+    len_m=[0.50,0.50,0.30];
+    mass_kg=[1,1,1];
+    tor_Nm=[0,0,0];
+    alfa_rad=[1.5,-0.2,1.5];
+    omega_rads=[0,0,0];
+    epsilon_rads2=[0,0,0];
+    color="blue";
+    F01;
+    F12;
+    F23;
+    F3gA;
+    F3gB;
+    x1;
+    x2;
+    x3;
+    
+    constructor ()
+    {
+        this.F01=new vec2d(0.0,0.0);
+        this.F12=new vec2d(0.0,0.0);
+        this.F23=new vec2d(0.0,0.0);
+        this.F3gA=new vec2d(0.0,0.0);
+        this.F3gB=new vec2d(0.0,0.0);
+        this.x1=0;
+        this.x2=0;
+        this.x3=0;
+
+
+    }
+    calculate(dt)
+    {
+        this.t+=dt;
+
+        this.epsilon_rads2[0]=this.tor_Nm[0];
+        this.epsilon_rads2[1]=this.tor_Nm[1];
+        this.epsilon_rads2[2]=this.tor_Nm[2];
+
+        this.omega_rads[0]+=this.epsilon_rads2[0]*dt;
+        this.omega_rads[1]+=this.epsilon_rads2[1]*dt;
+        this.omega_rads[2]+=this.epsilon_rads2[2]*dt;
+        
+
+        this.alfa_rad[0]+=this.omega_rads[0]*dt;
+        this.alfa_rad[1]+=this.omega_rads[1]*dt;
+        this.alfa_rad[2]+=this.omega_rads[2]*dt;
+
+        if (this.alfa_rad[1]>0) this.alfa_rad[1]=0;
+        if (this.alfa_rad[2]>1.5) this.alfa_rad[2]=1.5;
+        if (this.alfa_rad[2]<0.5) this.alfa_rad[2]=0.5;
+
+        //this.alfa_rad[0]+=0.01;
+        //this.alfa_rad[1]-=0.007;
+
+        this.x1=Math.sin(this.alfa_rad[0])*this.len_m[0]*0.5;
+        this.y1=Math.cos(this.alfa_rad[0])*this.len_m[0]*0.5;
+        this.x2=Math.sin(this.alfa_rad[0]+this.alfa_rad[1])*this.len_m[1]*0.5;
+        this.y2=Math.cos(this.alfa_rad[0]+this.alfa_rad[1])*this.len_m[1]*0.5;
+        this.x3=Math.sin(this.alfa_rad[0]+this.alfa_rad[1]+this.alfa_rad[2])*this.len_m[2]*0.25;
+        this.y3=Math.cos(this.alfa_rad[0]+this.alfa_rad[1]+this.alfa_rad[2])*this.len_m[2]*0.25;
+        //this.F23=
+
+
+        this.F3gB.y=0;
+        this.F23.y=0;
+        this.F12.y=0;
+        this.F01.y=0;
+        if((this.y1*2.0+this.y2*2.0+this.y3*3.0)>0.8)
+        {
+            this.F3gB.y=this.mass_kg[0]+this.mass_kg[1]+this.mass_kg[3];
+            this.F23.y=this.F3gB.y;
+            this.F12.y=this.F3gB.y;
+            this.F01.y=this.F3gB.y;
+
+        }
+
+        this.tor_Nm[0]=-this.x1*this.mass_kg[0]-this.x2*this.mass_kg[1]-this.x3*this.mass_kg[2];
+        this.tor_Nm[1]=-this.x2*this.mass_kg[1]-this.x3*this.mass_kg[2];
+        this.tor_Nm[2]=-this.x3*this.mass_kg[2];
+
+
+
+        //console.log(this.alfa_rad);
+        //console.log(this.x1+" "+this.x2);
+
+    }
+
+    draw(pctx)
+    {
+        pctx.beginPath();
+        pctx.strokeStyle=this.color;
+        pctx.save();
+        pctx.rotate(-this.alfa_rad[0]);
+        //pctx.translate(-5.0,this.len_m[0]*50.0);
+        pctx.rect(-5,0,10,this.len_m[0]*100.0);
+        pctx.translate(0,this.len_m[1]*100.0);    
+        pctx.rotate(-this.alfa_rad[1]);
+        pctx.rect(-2.5,0,5,this.len_m[1]*100.0);
+        pctx.translate(0,this.len_m[1]*100.0);
+        pctx.rotate(-this.alfa_rad[2]);
+        pctx.rect(-2.5,-this.len_m[2]*25.0,5,this.len_m[2]*100.0);
+        pctx.stroke();
+        pctx.restore();
+        pctx.beginPath();
+        pctx.moveTo(this.x1*100.0,0);
+        pctx.lineTo(this.x1*100.0,100);
+        pctx.moveTo((this.x1*2.0+this.x2)*100.0,0);
+        pctx.lineTo((this.x1*2.0+this.x2)*100.0,100);
+        pctx.moveTo((this.x1*2.0+this.x2*2.0+this.x3)*100.0,0);
+        pctx.lineTo((this.x1*2.0+this.x2*2.0+this.x3)*100.0,100);
+
+        pctx.moveTo((this.x1*2.0+this.x2*2.0-this.x3)*100.0,0);
+        pctx.lineTo((this.x1*2.0+this.x2*2.0-this.x3)*100.0,100);
+        pctx.moveTo((this.x1*2.0+this.x2*2.0+this.x3*3.0)*100.0,0);
+        pctx.lineTo((this.x1*2.0+this.x2*2.0+this.x3*3.0)*100.0,100);
+
+        pctx.moveTo(0,(this.y1*2.0+this.y2*2.0-this.y3)*100.0);
+        pctx.lineTo(100,(this.y1*2.0+this.y2*2.0-this.y3)*100.0);
+        pctx.moveTo(0,(this.y1*2.0+this.y2*2.0+this.y3*3.0)*100.0);
+        pctx.lineTo(100,(this.y1*2.0+this.y2*2.0+this.y3*3.0)*100.0);
+
+
+
+        /*
+        pctx.ellipse(this.x1*100.0,0,10,10,0,0,Math.PI);
+        pctx.ellipse((this.x1+this.x2)*100.0,0,10,10,0,0,Math.PI);        
+        pctx.ellipse((this.x1+this.x2+this.x3)*100.0,0,10,10,0,0,Math.PI);
+        */
+        pctx.stroke();
+
+
+    }
+}
+
 
 /**
- * Cell class represents a singular cell
+ * AIWalker class represents a walker
  */
 
-class Cell
+class AIWalker
 {
     static st_map;
     static st_stagesize;
+    leg_r;
+    leg_l;
 
     posx=0;
     posy=0;
@@ -43,14 +211,13 @@ class Cell
     dir=0;
     color="black";
 
-    /**
-     * 
-     * @param {number} px inittial x position
-     * @param {number} py initial y position
-     */
-
-    constructor (px,py)
+    constructor ()
     {
+        this.leg_l=new leg();
+        this.leg_r=new leg();
+        this.leg_l.color="red";
+        this.leg_l.alfa_rad=[-1.2,-0.2,1.5];
+        /*
         this.posx=Math.floor(px);
         this.posy=Math.floor(py);
         
@@ -69,7 +236,7 @@ class Cell
         this.neurons.a_conn_l1[1]=1;        //TODO:wywalic
         this.neurons.a_conn_ac[t*4]=1;      //TODO:wywalic
     //    console.log(typeof(this.posx));
-
+*/
     }
 
     /**
@@ -78,6 +245,9 @@ class Cell
 
     update(pstep)
     {
+        this.leg_l.calculate(pstep);
+        this.leg_r.calculate(pstep);
+        /*
        // console.log(typeof(this.posx));
         var dx=0;
         var dy=0;
@@ -180,7 +350,7 @@ class Cell
         this.posy+=dy;
         //console.log(this.st_stagesize*this.posx+this.posy);
         this.st_map[(this.st_stagesize*this.posx+this.posy)]=this;
-
+*/
     }
 
     /**
@@ -189,18 +359,26 @@ class Cell
      * @param {number} pscale scale
      */
 
-    draw(pctx,pscale)
+    draw(pctx)
     {
+        /*
         pctx.beginPath();
 
         //pctx.strokeStyle=dir_color[this.dir];
         pctx.strokeStyle=this.color;
         pctx.ellipse(pscale+this.posx*pscale*2,pscale+this.posy*pscale*2,pscale,pscale,0,0, pi_2);
         pctx.stroke();
+*/
+        pctx.save();
+        pctx.translate(100,100);
+        this.leg_l.draw(pctx);
+        this.leg_r.draw(pctx);
+        pctx.restore();
     }
 
     copy()
     {
+        /*
         let tcell=new Cell(this.posx,this.posy);
         tcell.dir=this.dir;
         tcell.color=this.color;
@@ -210,12 +388,14 @@ class Cell
         tcell.neurons.a_sensors[na_sensors.s_on]=1;
         tcell.neurons.a_sensors[na_sensors.s_off]=0;
         return tcell;
-
+*/
     }
 
     mutate()
     {
+        /*
         this.neurons.mutate();
+        */
     }
 
 }
